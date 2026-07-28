@@ -92,17 +92,6 @@ python3 ~/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py \
   plugins/codex-cloud-ready
 ```
 
-## Trademark notice
-
-This is an independent community project. It is not affiliated with, endorsed
-by, or supported by OpenAI.
-
-OpenAI, Codex, and related names and trademarks are the property of OpenAI. This
-project uses those names only to describe compatibility with OpenAI services and
-does not use or modify OpenAI logos.
-
-See the current [OpenAI Brand Guidelines](https://openai.com/brand/).
-
 ## License
 
 [MIT](LICENSE)
