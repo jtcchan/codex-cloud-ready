@@ -1,6 +1,6 @@
 {
   "name": "codex-cloud-ready",
-  "version": "0.1.0+codex.20260728091333",
+  "version": "0.1.0+codex.20260728092203",
   "description": "Add repository setup and test instructions for Codex Cloud and GitHub @codex fixes.",
   "author": {
     "name": "John Chan",
