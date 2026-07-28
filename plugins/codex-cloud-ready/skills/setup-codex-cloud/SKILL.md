@@ -1,21 +1,18 @@
 ---
 name: setup-codex-cloud
-description: Make GitHub @codex fixes reliable by teaching a repository how to install and test itself in Codex Cloud. Detect its runtimes, lockfiles, package managers, and validation scripts; generate repeatable .codex/cloud setup and maintenance scripts; and add bounded Codex Cloud guidance to AGENTS.md. Use when the user says setup Codex Cloud, make @codex fixes work, configure a cloud environment, bootstrap a repository for Codex, or audit cloud readiness.
+description: Generate repository-owned setup and test instructions for Codex Cloud and GitHub @codex fixes. Detect runtimes, lockfiles, package managers, and validation scripts; create repeatable .codex/cloud setup and maintenance scripts; and add bounded Codex Cloud guidance to AGENTS.md. Use when the user says setup Codex Cloud, make @codex fixes work, configure a cloud environment, bootstrap a repository for Codex, or audit cloud readiness.
 ---
 
 # Setup Codex Cloud
 
 ## Overview
 
-Automatic review can find a problem in a pull request, but fixing it is a
-separate step. When a user replies with `@codex fix`, Codex starts a cloud task
-with that pull request as context. The task still needs a reliable way to
-install the project and prove that its change works.
+When a user comments `@codex fix` on a pull request, Codex starts a cloud task
+with that pull request as context. The task needs a reliable way to install the
+project and run its checks.
 
-Generate repository-owned, reviewable bootstrap files so that cloud task can
-install dependencies and run the repository's checks consistently. In plain
-language: this skill writes the project's setup instructions once so Codex does
-not have to guess every time.
+Generate reviewable bootstrap files inside the repository so the cloud task can
+install dependencies and run the same checks each time.
 
 This skill configures the repository. The user must still create or select the
 hosted environment in Codex settings and grant the GitHub app write access
