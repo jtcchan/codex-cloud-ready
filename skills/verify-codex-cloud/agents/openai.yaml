@@ -1,0 +1,4 @@
+interface:
+  display_name: "Verify Codex Cloud"
+  short_description: "Independently verify Codex Cloud readiness"
+  default_prompt: "Use $verify-codex-cloud to independently verify this repository for @codex PR fixes."
