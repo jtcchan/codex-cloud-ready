@@ -1,7 +1,7 @@
 interface:
   display_name: "Setup Codex Cloud"
-  short_description: "Prepare a repository for Codex Cloud"
+  short_description: "Make GitHub @codex fixes work reliably"
   icon_small: "./assets/icon-400.png"
   icon_large: "./assets/icon-400.png"
   brand_color: "#5367FF"
-  default_prompt: "Use $setup-codex-cloud to prepare this repository for @codex PR fixes."
+  default_prompt: "Use $setup-codex-cloud to make this repository ready for GitHub @codex fixes. Explain the proposed setup in plain language, show me the diff, and verify the result."

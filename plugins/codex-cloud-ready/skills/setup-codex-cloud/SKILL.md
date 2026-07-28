@@ -1,13 +1,25 @@
 ---
 name: setup-codex-cloud
-description: Prepare a repository for Codex Cloud and GitHub @codex PR remediation by detecting its runtimes, lockfiles, package managers, and validation scripts; generating idempotent .codex/cloud setup and maintenance scripts; and adding a bounded Codex Cloud section to AGENTS.md. Use when the user says setup Codex Cloud, make @codex fixes work, configure a cloud environment, bootstrap a repository for Codex, or audit cloud readiness.
+description: Make GitHub @codex fixes reliable by teaching a repository how to install and test itself in Codex Cloud. Detect its runtimes, lockfiles, package managers, and validation scripts; generate repeatable .codex/cloud setup and maintenance scripts; and add bounded Codex Cloud guidance to AGENTS.md. Use when the user says setup Codex Cloud, make @codex fixes work, configure a cloud environment, bootstrap a repository for Codex, or audit cloud readiness.
 ---
 
 # Setup Codex Cloud
 
 ## Overview
 
-Generate repository-owned, reviewable bootstrap files so a Codex Cloud task can install dependencies consistently. This skill configures the repository; the user must still create or select the hosted environment in Codex settings and grant the GitHub app write access before `@codex fix` can push changes.
+Automatic review can find a problem in a pull request, but fixing it is a
+separate step. When a user replies with `@codex fix`, Codex starts a cloud task
+with that pull request as context. The task still needs a reliable way to
+install the project and prove that its change works.
+
+Generate repository-owned, reviewable bootstrap files so that cloud task can
+install dependencies and run the repository's checks consistently. In plain
+language: this skill writes the project's setup instructions once so Codex does
+not have to guess every time.
+
+This skill configures the repository. The user must still create or select the
+hosted environment in Codex settings and grant the GitHub app write access
+before `@codex fix` can push changes.
 
 ## Safety boundary
 
@@ -33,6 +45,11 @@ Generate repository-owned, reviewable bootstrap files so a Codex Cloud task can 
    ```
 
 5. Inspect the resulting diff. Then run the separate `$verify-codex-cloud` skill. The verifier is read-only and must return `PASS`, `FAIL`, or `BLOCKED`.
+
+When reporting the plan or result, explain the user-visible outcome first:
+which project setup was detected, what Codex will now be able to install and
+test, and whether the repository is ready for the hosted handoff. Put command
+details after that plain-language summary.
 
 ## Generated contract
 

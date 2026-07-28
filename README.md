@@ -4,8 +4,59 @@
 
 # Codex Cloud Ready
 
-An open-source Codex plugin that prepares repositories so GitHub `@codex fix`
-tasks can bootstrap predictably in Codex Cloud.
+Turn a Codex review comment into a tested fix on the same GitHub pull request.
+
+Codex can automatically review every pull request and point out serious
+problems. Finding the problem is only half the job, though. When someone replies
+with `@codex fix`, Codex Cloud still needs to know how to open that repository,
+install its dependencies, and run its tests.
+
+Codex Cloud Ready writes those instructions into the repository once, so the
+fix can happen where the review already lives.
+
+![Illustrative GitHub pull request showing Codex finding an issue, receiving an @codex fix comment, and pushing a tested fix](docs/images/review-to-fix.png)
+
+<sub>Illustrative mockup. The exact GitHub and Codex interface may change.</sub>
+
+## The problem it solves
+
+Think of automatic review as a teammate who spots a problem and leaves a note.
+`@codex fix` asks that teammate to repair it. But Codex cannot safely repair the
+project if a fresh cloud workspace does not know how the project is installed
+or tested.
+
+Without repository setup, a cloud task may stop before it reaches the actual
+fix. This plugin gives the repository a small, version-controlled setup guide:
+
+- how to install the project's locked dependencies;
+- how to refresh them when a cached cloud workspace resumes;
+- which checks prove that a change is safe;
+- which instructions Codex should follow for this repository.
+
+![Illustrative comparison of a cloud task stopping without repository setup and succeeding with Codex Cloud Ready](docs/images/why-cloud-ready.png)
+
+<sub>Illustrative mockup. No secrets or account permissions are stored in these repository files.</sub>
+
+## A normal workflow
+
+1. Install this plugin once on the computer where you use Codex.
+2. Run `$setup-codex-cloud` once in each repository you want to prepare.
+3. Review and commit the generated setup files.
+4. Connect that repository to a Codex Cloud environment and allow the Codex
+   GitHub app to write to it.
+5. When Codex leaves an actionable review comment, reply:
+
+```text
+@codex fix the P1 issue
+```
+
+Codex starts a cloud task with the pull request as context, makes the change,
+runs the repository's checks, and can push the result back to the same pull
+request.
+
+This plugin does **not** turn every review comment into an automatic code
+change. It makes the documented `@codex fix` workflow reliable when you choose
+to use it.
 
 ## Install
 
@@ -17,8 +68,9 @@ Give a Codex agent this prompt:
 Read https://github.com/jtcchan/codex-cloud-ready and follow its README to
 install the plugin. Start a new task after installation, then use
 $setup-codex-cloud to prepare the current repository for GitHub @codex fix
-tasks. Show me the generated diff and run $verify-codex-cloud. Never put secret
-values in the repository and stop before account-level permission changes.
+tasks. Explain the proposed repository changes in plain language, show me the
+generated diff, and run $verify-codex-cloud. Never put secret values in the
+repository and stop before account-level permission changes.
 ```
 
 ### Install manually
@@ -34,19 +86,21 @@ Start a new Codex task inside any repository, then say:
 Use $setup-codex-cloud to prepare this repository for @codex PR fixes.
 ```
 
-## What happens
+## What the skill does
 
 ```mermaid
 flowchart LR
-    A["Inspect repository evidence"] --> B["Generate setup and maintenance scripts"]
-    B --> C["Add bounded AGENTS.md guidance"]
-    C --> D["Independent read-only verification"]
-    D --> E["Commit repository setup"]
-    E --> F["Connect hosted environment and GitHub permissions"]
-    F --> G["@codex fix can run"]
+    A["Read the repository's existing setup"] --> B["Write repeatable cloud setup instructions"]
+    B --> C["Record how Codex should test changes"]
+    C --> D["Verify the setup without changing it"]
+    D --> E["Repository is ready for @codex fix"]
 ```
 
-## What it provides
+The setup skill detects evidence that already exists—such as lockfiles,
+package managers, and test scripts. It does not invent install commands when
+the repository is ambiguous.
+
+It then creates:
 
 - `$setup-codex-cloud` detects repository evidence and generates idempotent
   setup and maintenance scripts.
@@ -57,7 +111,7 @@ flowchart LR
   commands.
 - Secret-safe repository files: credential values remain in hosted settings.
 
-## Repository output
+## Files added to the repository
 
 ```text
 .codex/cloud/setup.sh
@@ -66,10 +120,11 @@ flowchart LR
 AGENTS.md
 ```
 
-The plugin prepares repository-owned configuration. It cannot create the hosted
-Codex environment, provide secret values, or grant the GitHub app write access.
+These files are ordinary, reviewable project files. Your team can see exactly
+what Codex will install and test, and the same setup travels with the
+repository.
 
-## Finish hosted setup
+## One-time hosted setup
 
 After the generated repository files pass verification:
 
@@ -79,6 +134,44 @@ After the generated repository files pass verification:
 4. Grant the Codex GitHub app write access to the repository.
 5. Commit the generated files, then use `@codex fix` on an actionable review
    finding.
+
+The plugin intentionally stops before creating hosted environments, entering
+secret values, or changing GitHub permissions.
+
+## Common questions
+
+### Does this enable automatic Codex reviews?
+
+No. Automatic review is configured separately in Codex code review settings.
+This plugin prepares the follow-up fix workflow.
+
+### Do I run this every day?
+
+No. Run it once per repository, then rerun it when the project's install or
+test process changes. Codex may cache cloud workspaces for speed, but the
+repository setup remains the source of truth.
+
+### Does package installation use model tokens?
+
+Installing dependencies uses cloud environment compute and network time, not
+model reasoning tokens. Locked dependencies and Codex's universal image help
+keep setup repeatable.
+
+### Are secrets committed to Git?
+
+No. The generated files record variable names and setup commands only. Secret
+values belong in the Codex environment's secret store.
+
+## Official Codex documentation
+
+- [Codex code review in GitHub](https://learn.chatgpt.com/docs/third-party/github)
+  explains automatic reviews, `@codex review`, and `@codex fix`.
+- [Codex Cloud environments](https://learn.chatgpt.com/docs/environments/cloud-environment)
+  explains setup scripts, the universal image, secrets, and container caching.
+- [Open Codex environment settings](https://chatgpt.com/codex/settings/environments)
+  to connect a repository and configure its hosted environment.
+- [Open Codex code review settings](https://chatgpt.com/codex/settings/code-review)
+  to enable reviews for a repository.
 
 ## Development
 
