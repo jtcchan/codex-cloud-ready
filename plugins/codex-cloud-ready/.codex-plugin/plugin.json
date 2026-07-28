@@ -1,6 +1,6 @@
 {
   "name": "codex-cloud-ready",
-  "version": "0.1.0+codex.20260728082100",
+  "version": "0.1.0+codex.20260728083616",
   "description": "Prepare and independently verify repositories for Codex Cloud and GitHub @codex PR fixes.",
   "author": {
     "name": "John Chan",
