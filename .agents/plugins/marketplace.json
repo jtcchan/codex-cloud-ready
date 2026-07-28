@@ -1,0 +1,20 @@
+{
+  "name": "codex-cloud-ready",
+  "interface": {
+    "displayName": "Codex Cloud Ready"
+  },
+  "plugins": [
+    {
+      "name": "codex-cloud-ready",
+      "source": {
+        "source": "local",
+        "path": "./plugins/codex-cloud-ready"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}

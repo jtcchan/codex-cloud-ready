@@ -1,0 +1,39 @@
+{
+  "name": "codex-cloud-ready",
+  "version": "0.1.0+codex.20260728082100",
+  "description": "Prepare and independently verify repositories for Codex Cloud and GitHub @codex PR fixes.",
+  "author": {
+    "name": "John Chan",
+    "url": "https://github.com/jtcchan"
+  },
+  "homepage": "https://github.com/jtcchan/codex-cloud-ready#readme",
+  "repository": "https://github.com/jtcchan/codex-cloud-ready",
+  "license": "MIT",
+  "keywords": [
+    "codex",
+    "cloud",
+    "github",
+    "developer-tools"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Codex Cloud Ready",
+    "shortDescription": "Prepare repositories for reliable @codex fixes.",
+    "longDescription": "Detects repository runtimes and package managers, generates idempotent Codex Cloud setup and maintenance scripts, and independently verifies the result.",
+    "developerName": "John Chan",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Repository bootstrap",
+      "Cloud readiness verification"
+    ],
+    "websiteURL": "https://github.com/jtcchan/codex-cloud-ready",
+    "brandColor": "#5367FF",
+    "composerIcon": "./assets/icon-400.png",
+    "logo": "./assets/icon-1024.png",
+    "logoDark": "./assets/icon-1024.png",
+    "defaultPrompt": [
+      "Use $setup-codex-cloud to prepare this repository for @codex PR fixes.",
+      "Use $verify-codex-cloud to verify this repository's cloud readiness."
+    ]
+  }
+}
