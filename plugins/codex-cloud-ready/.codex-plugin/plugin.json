@@ -1,7 +1,7 @@
 {
   "name": "codex-cloud-ready",
-  "version": "0.1.0+codex.20260728092203",
-  "description": "Add repository setup and test instructions for Codex Cloud and GitHub @codex fixes.",
+  "version": "0.2.0+codex.20260803011000",
+  "description": "Add repository setup, cloud environment contracts, and test instructions for Codex Cloud and GitHub @codex fixes.",
   "author": {
     "name": "John Chan",
     "url": "https://github.com/jtcchan"
@@ -19,11 +19,12 @@
   "interface": {
     "displayName": "Codex Cloud Ready",
     "shortDescription": "Set up a repository for GitHub @codex fixes.",
-    "longDescription": "Generate repository-owned setup scripts, record validation commands, and verify that Codex Cloud can install and test the project.",
+    "longDescription": "Generate repository-owned setup scripts, record validation commands and a value-free cloud environment contract, and verify that Codex Cloud can install and test the project.",
     "developerName": "John Chan",
     "category": "Developer Tools",
     "capabilities": [
       "Repository bootstrap",
+      "Cloud environment contracts",
       "Cloud readiness verification"
     ],
     "websiteURL": "https://github.com/jtcchan/codex-cloud-ready",

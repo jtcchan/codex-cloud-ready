@@ -15,11 +15,13 @@ from typing import Any
 
 START = "<!-- codex-cloud-ready:start -->"
 END = "<!-- codex-cloud-ready:end -->"
+CONTRACT = ".codex/cloud/contract.json"
 REQUIRED = [
     ".codex/cloud/setup.sh",
     ".codex/cloud/maintenance.sh",
     ".codex/cloud/environment.json",
     "AGENTS.md",
+    CONTRACT,
 ]
 SECRET_PATTERNS = [
     re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----"),
@@ -30,6 +32,8 @@ SECRET_PATTERNS = [
         r"\s*=\s*['\"]?(?!\$\{?)[^'\"\s][^'\"\n]*"
     ),
 ]
+ENVIRONMENT_VARIABLE = re.compile(r"^[A-Z][A-Z0-9_]*$")
+REPOSITORY = re.compile(r"^[a-z0-9](?:[a-z0-9-]{0,38}[a-z0-9])?/[a-z0-9._-]+$")
 
 
 def check(name: str, ok: bool, detail: str) -> dict[str, Any]:
@@ -46,8 +50,34 @@ def load_manifest(path: Path) -> tuple[dict[str, Any] | None, str]:
     return value, "valid JSON object"
 
 
+def validate_cloud_contract(contract_path: Path) -> list[dict[str, Any]]:
+    results: list[dict[str, Any]] = []
+    try:
+        contract = json.loads(contract_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as error:
+        return [check("cloud-contract:json", False, str(error))]
+    results.append(check("cloud-contract:json", isinstance(contract, dict), "valid JSON object"))
+    if not isinstance(contract, dict):
+        return results
+    results.append(check("cloud-contract:schema-version", contract.get("schema_version") == 1, f"value={contract.get('schema_version')!r}"))
+    results.append(check("cloud-contract:provider", contract.get("provider") == "codex", f"value={contract.get('provider')!r}"))
+    results.append(check("cloud-contract:status", contract.get("status") in {"pending", "ready", "blocked"}, f"value={contract.get('status')!r}"))
+    results.append(check("cloud-contract:network-access", contract.get("network_access") in {"off", "limited", "unrestricted"}, f"value={contract.get('network_access')!r}"))
+    results.append(check("cloud-contract:secret-policy", contract.get("secret_policy") == "setup_only" and contract.get("agent_secret_policy") == "unavailable", "setup-only secrets"))
+    environment_name = contract.get("environment_name")
+    repository = contract.get("repository")
+    results.append(check("cloud-contract:identity", contract.get("status") != "ready" or (isinstance(environment_name, str) and bool(environment_name.strip()) and isinstance(repository, str) and REPOSITORY.fullmatch(repository) is not None), "ready identity is complete" if contract.get("status") == "ready" else "hosted identity pending or blocked"))
+    for field in ("environment_variables", "secrets"):
+        values = contract.get(field)
+        all_names = isinstance(values, list) and all(isinstance(value, str) and ENVIRONMENT_VARIABLE.fullmatch(value) for value in values)
+        valid = all_names and len(values) == len(set(values)) if all_names else False
+        results.append(check(f"cloud-contract:{field}", valid, "names only" if valid else "must contain unique uppercase names"))
+    return results
+
+
 def static_checks(root: Path) -> tuple[list[dict[str, Any]], dict[str, Any] | None]:
     results: list[dict[str, Any]] = []
+    contract: dict[str, Any] | None = None
     for relative in REQUIRED:
         path = root / relative
         results.append(check(f"exists:{relative}", path.is_file(), "present" if path.is_file() else "missing"))
@@ -123,13 +153,34 @@ def static_checks(root: Path) -> tuple[list[dict[str, Any]], dict[str, Any] | No
             )
         )
 
+        cloud = manifest.get("cloud_environment")
+        results.append(check("manifest:cloud-environment", isinstance(cloud, dict), "cloud handoff metadata present" if isinstance(cloud, dict) else "missing cloud handoff metadata"))
+
     agents = root / "AGENTS.md"
     if agents.is_file():
         text = agents.read_text(encoding="utf-8")
         markers_ok = text.count(START) == 1 and text.count(END) == 1 and text.index(START) < text.index(END)
         results.append(check("agents:managed-block", markers_ok, "one complete block" if markers_ok else "markers malformed"))
 
-    generated = [root / relative for relative in REQUIRED[:3]]
+    contract_path = root / CONTRACT
+    if contract_path.is_file():
+        try:
+            parsed_contract = json.loads(contract_path.read_text(encoding="utf-8"))
+            if isinstance(parsed_contract, dict):
+                contract = parsed_contract
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+            pass
+        results.extend(validate_cloud_contract(contract_path))
+    if manifest is not None and isinstance(manifest.get("cloud_environment"), dict) and contract is not None:
+        results.append(
+            check(
+                "manifest:cloud-contract-match",
+                manifest["cloud_environment"] == contract,
+                "manifest and contract agree" if manifest["cloud_environment"] == contract else "manifest cloud metadata differs from contract",
+            )
+        )
+
+    generated = [root / relative for relative in REQUIRED[:3]] + [root / CONTRACT]
     findings: list[str] = []
     for path in generated:
         if not path.is_file():

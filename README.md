@@ -55,11 +55,13 @@ Use $setup-codex-cloud to prepare this repository for @codex PR fixes.
 ## What it adds
 
 - `$setup-codex-cloud` reads the project's lockfiles and test scripts, then
-  creates repeatable setup and maintenance scripts.
+  creates repeatable setup and maintenance scripts plus a value-free cloud
+  environment contract.
 - `$verify-codex-cloud` checks the generated setup without changing it.
 - Lockfile support for Node, Python, Ruby, Rust, Go, and PHP projects.
 - A small `AGENTS.md` section with the project's setup and test commands.
-- Secret-safe repository files: credential values remain in hosted settings.
+- Secret-safe repository files: credential values remain in hosted settings;
+  the repository records only environment-variable and secret names.
 
 It does not enable automatic review, create a hosted environment, store secret
 values, or change GitHub permissions.
@@ -68,9 +70,14 @@ values, or change GitHub permissions.
 
 1. Run `$setup-codex-cloud` in the repository.
 2. Review and commit the generated files.
-3. Create or select the repository's Codex Cloud environment.
-4. Put any secret values in the hosted environment, not in Git.
-5. Allow the Codex GitHub app to write to the repository if you want fixes
+3. Fill in the generated cloud contract file with the verified environment name,
+   repository, branch, network policy, and names of required variables/secrets.
+4. Rerun the setup command with `--apply`, then run verification so the derived
+   manifest matches the contract.
+5. Create or select the matching repository's Codex Cloud environment.
+6. Put any secret values in the hosted environment, not in Git. Secrets are
+   available to setup only, not to the agent phase.
+7. Allow the Codex GitHub app to write to the repository if you want fixes
    pushed back to the pull request.
 
 Run the setup again only when the project's install or test process changes.
@@ -81,6 +88,7 @@ Run the setup again only when the project's install or test process changes.
 .codex/cloud/setup.sh
 .codex/cloud/maintenance.sh
 .codex/cloud/environment.json
+.codex/cloud/contract.json
 AGENTS.md
 ```
 

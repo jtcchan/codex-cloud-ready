@@ -30,10 +30,10 @@ Return exactly one readiness verdict—`PASS`, `FAIL`, or `BLOCKED`—from raw r
 
 ## Verdict contract
 
-- `PASS`: all required files exist; shell syntax, executable bits, manifest structure, command consistency, AGENTS markers, and secret-safety checks pass; any explicitly requested live run also passes.
+- `PASS`: all required files exist; shell syntax, executable bits, manifest and cloud-contract structure, command consistency, AGENTS markers, and secret-safety checks pass; any explicitly requested live run also passes.
 - `FAIL`: repository-controlled evidence is missing, malformed, inconsistent, unsafe, or a requested bootstrap command exits nonzero.
 - `BLOCKED`: the requested verification cannot run because a required external capability such as Docker is unavailable.
 
-The verdict proves repository bootstrap readiness only. It does not prove that a hosted Codex environment exists, secrets are configured, the GitHub app can write, or a particular PR is mergeable.
+The verdict proves repository bootstrap and contract readiness only. It does not prove that a hosted Codex environment exists, secrets are configured, the GitHub app can write, or a particular PR is mergeable.
 
 Read [references/checks.md](references/checks.md) for the exact static and optional live checks.
