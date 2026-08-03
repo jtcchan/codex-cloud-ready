@@ -12,6 +12,10 @@ The repository bootstrap contract is portable and version-controlled:
   resumes.
 - `.codex/cloud/environment.json` records detected requirements for humans and
   agents.
+- `.codex/cloud/contract.json` records the intended hosted environment identity,
+  network policy, and required variable/secret names. It never contains secret
+  values. The contract is repository-owned metadata; the actual environment
+  and secret store remain account-level Codex settings.
 
 The hosted environment is selected per repository in Codex Cloud settings.
 
@@ -37,5 +41,7 @@ Codex Cloud task that can push a change only when:
 - required secrets are present in hosted settings; and
 - the Codex GitHub app has write permission.
 
-This plugin verifies the first-run repository contract, not those account-level
+Codex Cloud decrypts secrets for setup, then removes them before the agent
+phase. Do not design an agent task that expects to read a secret after setup.
+This plugin verifies the repository contract, not those account-level
 conditions.

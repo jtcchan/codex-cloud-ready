@@ -53,6 +53,10 @@ details after that plain-language summary.
 - `.codex/cloud/setup.sh`: first-run dependency bootstrap.
 - `.codex/cloud/maintenance.sh`: dependency refresh when a cached cloud container resumes.
 - `.codex/cloud/environment.json`: detected runtimes, install commands, validation commands, and warnings. It contains names only, never secret values.
+- `.codex/cloud/contract.json`: a value-free contract for the intended Codex
+  environment, including its name, repository, branch, network policy, and
+  names of required environment variables and secrets. It explicitly records
+  that secrets are setup-only and unavailable during the agent phase.
 - `AGENTS.md`: a marker-delimited block telling Codex how to bootstrap and validate the repository.
 
 The generator recognizes common Node, Python, Ruby, Rust, Go, and PHP lockfiles. It prefers locked installs and records ambiguity instead of guessing.
@@ -63,8 +67,12 @@ After repository verification passes, give the user the remaining account-level 
 
 1. In Codex Cloud settings, create or select an environment for this repository.
 2. Use the default universal image unless the repository needs a custom container.
-3. Put credential values in the environment's secret store, not in Git.
-4. Ensure the Codex GitHub app has permission to write to the repository.
-5. Use `@codex fix` on an actionable Codex review comment. A plain `@codex` mention is conversational; `@codex fix` is the documented remediation command.
+3. Set the repository-owned contract's `environment_name`, `repository`,
+   `default_branch`, and `network_access` to the values you actually configured.
+4. Put credential values in the environment's secret store, not in Git. Record
+   only their names in the contract.
+5. Ensure the Codex GitHub app has permission to write to the repository.
+6. Use `@codex fix` on an actionable Codex review comment. A plain `@codex`
+   mention is conversational; `@codex fix` is the documented remediation command.
 
 Read [references/cloud-behavior.md](references/cloud-behavior.md) when explaining caching, billing, or the boundary between this skill and hosted environment settings.

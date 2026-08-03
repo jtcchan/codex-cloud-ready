@@ -59,6 +59,88 @@ class CloudReadyTests(unittest.TestCase):
             self.assertEqual(verify.returncode, 0, verify.stderr or verify.stdout)
             self.assertEqual(json.loads(verify.stdout)["verdict"], "PASS")
             self.assertIn("Keep this text.", agents_after_first)
+            contract = json.loads((root / ".codex/cloud/contract.json").read_text(encoding="utf-8"))
+            self.assertEqual(contract["provider"], "codex")
+            self.assertEqual(contract["status"], "pending")
+
+    def test_ready_cloud_contract_requires_identity_and_keeps_secret_values_out(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.node_repo(root)
+            self.assertEqual(run(str(PREPARE), "--repo", str(root), "--apply").returncode, 0)
+
+            contract_path = root / ".codex/cloud/contract.json"
+            contract = json.loads(contract_path.read_text(encoding="utf-8"))
+            contract.update(
+                {
+                    "status": "ready",
+                    "environment_name": "2x-default",
+                    "repository": "example/fixture",
+                    "network_access": "limited",
+                    "environment_variables": ["NODE_ENV"],
+                    "secrets": ["DATABASE_URL"],
+                }
+            )
+            contract_path.write_text(json.dumps(contract, indent=2) + "\n", encoding="utf-8")
+
+            check = run(str(PREPARE), "--repo", str(root), "--check")
+            self.assertEqual(check.returncode, 1)
+            self.assertIn("drifted: .codex/cloud/environment.json", check.stdout)
+
+            apply = run(str(PREPARE), "--repo", str(root), "--apply")
+            self.assertEqual(apply.returncode, 0, apply.stderr or apply.stdout)
+            verify = run(str(VERIFY), "--repo", str(root), "--json")
+            self.assertEqual(verify.returncode, 0, verify.stderr or verify.stdout)
+            self.assertEqual(json.loads(verify.stdout)["verdict"], "PASS")
+            self.assertNotIn("postgres://literal-secret", contract_path.read_text(encoding="utf-8"))
+
+    def test_invalid_cloud_contract_fails_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.node_repo(root)
+            self.assertEqual(run(str(PREPARE), "--repo", str(root), "--apply").returncode, 0)
+
+            contract_path = root / ".codex/cloud/contract.json"
+            contract = json.loads(contract_path.read_text(encoding="utf-8"))
+            contract.update({"status": "ready", "environment_name": "2x-default", "repository": "not canonical"})
+            contract_path.write_text(json.dumps(contract, indent=2) + "\n", encoding="utf-8")
+
+            verify = run(str(VERIFY), "--repo", str(root), "--json")
+            payload = json.loads(verify.stdout)
+            self.assertEqual(verify.returncode, 1)
+            self.assertEqual(payload["verdict"], "FAIL")
+            identity = next(item for item in payload["checks"] if item["name"] == "cloud-contract:identity")
+            self.assertEqual(identity["status"], "FAIL")
+
+    def test_invalid_cloud_contract_json_fails_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.node_repo(root)
+            self.assertEqual(run(str(PREPARE), "--repo", str(root), "--apply").returncode, 0)
+            contract_path = root / ".codex/cloud/contract.json"
+            contract_path.write_text("{not-json}\n", encoding="utf-8")
+
+            prepare = run(str(PREPARE), "--repo", str(root), "--apply")
+            self.assertEqual(prepare.returncode, 2)
+            verify = run(str(VERIFY), "--repo", str(root), "--json")
+            self.assertEqual(verify.returncode, 1)
+            self.assertEqual(json.loads(verify.stdout)["verdict"], "FAIL")
+
+    def test_verifier_rejects_manifest_contract_mismatch(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.node_repo(root)
+            self.assertEqual(run(str(PREPARE), "--repo", str(root), "--apply").returncode, 0)
+            manifest_path = root / ".codex/cloud/environment.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            manifest["cloud_environment"]["status"] = "ready"
+            manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+
+            verify = run(str(VERIFY), "--repo", str(root), "--json")
+            payload = json.loads(verify.stdout)
+            self.assertEqual(verify.returncode, 1)
+            mismatch = next(item for item in payload["checks"] if item["name"] == "manifest:cloud-contract-match")
+            self.assertEqual(mismatch["status"], "FAIL")
 
     def test_unlocked_manifest_requires_manual_review(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
